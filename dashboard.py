@@ -3,7 +3,7 @@ import pandas as pd
 import altair as alt
 import datetime 
 import calendar 
-
+pd.set_option('mode.chained_assignment', None)
 st.cache(persist=True)
 url="https://data.cdc.gov/api/views/muzy-jte6/rows.csv?accessType=DOWNLOAD" #dataset
 #function for loading data
@@ -35,7 +35,7 @@ merged['capita_covid'] = (merged['COVID-19 (U071, Multiple Cause of Death)']/mer
 
 #United States dataframe 
 us_df = df_filter[df_filter['Jurisdiction of Occurrence']=='United States']
-us_df['Population'] = us_pop
+us_df['Population'] = 328239523
 us_df['Capita'] = (us_df['All Cause']/us_df['Population']) * 1000
 us_df['Capita_COVID'] = (us_df['COVID-19 (U071, Multiple Cause of Death)']/us_df['Population']) * 1000
 us_df['date'] = pd.DatetimeIndex(us_df['Week Ending Date']).date
