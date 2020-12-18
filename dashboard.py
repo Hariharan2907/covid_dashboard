@@ -3,6 +3,8 @@ import pandas as pd
 import altair as alt
 import datetime 
 import calendar 
+import os
+port = int(os.environ.get("PORT", 5000))
 pd.set_option('mode.chained_assignment', None)
 st.cache(persist=True)
 url="https://data.cdc.gov/api/views/muzy-jte6/rows.csv?accessType=DOWNLOAD" #dataset
