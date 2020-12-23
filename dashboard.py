@@ -115,7 +115,7 @@ us_covid3 = alt.Chart(us_df_rem,width=1000,height=400).transform_fold(['MMWR Yea
 ).interactive()
 
 st.altair_chart(us_covid + us_covid1 + us_covid2 + us_covid3)
-st.markdown(" :warning: Note that the number of deaths reported in this graph may be incomplete due to lag in time (approx. 6 - 8 weeks) between the time the death occured and when the death certificate is completed.")
+st.markdown(" :warning: Note the dashes in the graph represent that the number of deaths reported in this graph may be incomplete due to lag in time (approx. 6 - 8 weeks) between the time the death occured and when the death certificate is completed.")
 
 
 #Graphs for selected U.S. States
@@ -190,10 +190,26 @@ covid4 = alt.Chart(merged_rem,width=1000,height=400).mark_circle().encode(
 ).interactive()
 
 st.altair_chart(covid1 + covid2 + covid3 + covid4)
-st.markdown(" :warning: Note that the number of deaths reported in this graph may be incomplete due to lag in time (approx. 6 - 8 weeks) between the time the death occured and when the death certificate is completed.")
+st.markdown(" :warning: Note the dashes in the graph represent that the number of deaths reported in this graph may be incomplete due to lag in time (approx. 6 - 8 weeks) between the time the death occured and when the death certificate is completed.")
 
+options = st.multiselect('Select Multiple States',merged['Jurisdiction of Occurrence'].unique())
+#st.write(merged[merged['Jurisdiction of Occurrence'].isin(options)])
+if options:
+    bar = alt.Chart(merged[merged['Jurisdiction of Occurrence'].isin(options)]).mark_bar().encode(
+        y="sum(COVID-19 (U071, Multiple Cause of Death))",
+        x=alt.X("Jurisdiction of Occurrence",sort="-y"),
+        color='Jurisdiction of Occurrence',
+        tooltip="sum(COVID-19 (U071, Multiple Cause of Death))"
+    ).interactive()
 
-
+    bar1 = alt.Chart(merged[merged['Jurisdiction of Occurrence'].isin(options)]).mark_bar().encode(
+        y="sum(All Cause)",
+        x=alt.X("Jurisdiction of Occurrence",sort="-y"),
+        color='Jurisdiction of Occurrence',
+        tooltip="sum(All Cause)"
+    ).interactive()
+    st.altair_chart(bar)
+    st.altair_chart(bar1)
 
 #Display Datasets
 st.header("View Datasets")
@@ -204,4 +220,4 @@ if st.checkbox("Click to view the dataset for all states", False):
     st.write(merged)
 if st.checkbox("Click to view dataset for the United States", False):
     st.write(us_df)
-st.write("Data Source: Weekly Counts of Deaths by State and Select Causes, 2019-2020, https://data.cdc.gov/NCHS/Weekly-Counts-of-Deaths-by-State-and-Select-Causes/muzy-jte6")
+st.write("Data Source: Weekly Counts of Deaths by State and Select Causes, 2019-2020, https://data.cdc.gov/api/views/muzy-jte6/rows.csv?accessType=DOWNLOAD")
