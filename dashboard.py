@@ -191,7 +191,7 @@ covid4 = alt.Chart(merged_rem,width=1000,height=400).mark_circle().encode(
 
 st.altair_chart(covid1 + covid2 + covid3 + covid4)
 st.markdown(" :warning: Note the dashes in the graph represent that the number of deaths reported in this graph may be incomplete due to lag in time (approx. 6 - 8 weeks) between the time the death occured and when the death certificate is completed.")
-
+st.header('Cumulative Count of COVID-19 and All Cause Deaths')
 options = st.multiselect('Select Multiple States',merged['Jurisdiction of Occurrence'].unique())
 #st.write(merged[merged['Jurisdiction of Occurrence'].isin(options)])
 if options:
@@ -220,4 +220,5 @@ if st.checkbox("Click to view the dataset for all states", False):
     st.write(merged)
 if st.checkbox("Click to view dataset for the United States", False):
     st.write(us_df)
-st.write("Data Source: Weekly Counts of Deaths by State and Select Causes, 2019-2020, https://data.cdc.gov/api/views/muzy-jte6/rows.csv?accessType=DOWNLOAD")
+
+st.write("Original Data Source: Weekly Counts of Deaths by State and Select Causes, 2019-2020, https://data.cdc.gov/api/views/muzy-jte6/rows.csv?accessType=DOWNLOAD")
