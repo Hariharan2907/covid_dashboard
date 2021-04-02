@@ -7,22 +7,40 @@ import os
 port = int(os.environ.get("PORT", 5000))
 pd.set_option('mode.chained_assignment', None)
 st.cache(persist=True)
-url="https://data.cdc.gov/api/views/muzy-jte6/rows.csv?accessType=DOWNLOAD" #dataset
+
+#download updated data from this link below
+#url="https://data.cdc.gov/api/views/muzy-jte6/rows.csv?accessType=DOWNLOAD" #dataset
+
+
+dataset = "death_rates.csv"
+dataset_2019 = "2019_death_rates.csv"
+
 #function for loading data
-def load_data():
+def load_data(url):
     df_filter=pd.read_csv(url,error_bad_lines=False, usecols=["Jurisdiction of Occurrence","MMWR Year","MMWR Week","Week Ending Date","All Cause","COVID-19 (U071, Multiple Cause of Death)","COVID-19 (U071, Underlying Cause of Death)"])
     return df_filter
-df_filter = load_data()
 
-pop = pd.read_csv("Population.csv") #population for each state
+#reads in dataset for 2020-2021 into dataframe 
+df_filter = load_data(dataset) 
+
+#reads in dataset for 2019 into dataframe
+df_2019 = load_data(dataset_2019)
+#Only selects 2019 rows from dataset 
+df_2019 = df_2019[df_2019['MMWR Year']==2019]
+
+#population for each state and the entire United States
+pop = pd.read_csv("Population.csv") 
 us_pop = 328239523
 
-st.title("All Cause Deaths and COVID-19 Deaths in the United States for 2019-2020")
+st.title("All Cause Deaths and COVID-19 Deaths in the United States for 2019-2021")
 st.markdown("-----")
 
+#Replaces first week of 2021 to week 0
+df_filter["MMWR Week"].replace({53:0},inplace=True) 
 
 #Cleaning data
-merged = pd.merge(df_filter,pop,left_on='Jurisdiction of Occurrence', right_on = 'States')
+merged = pd.concat([df_2019,df_filter],ignore_index=True)
+merged = pd.merge(merged,pop,left_on='Jurisdiction of Occurrence', right_on = 'States')
 merged['month'] = pd.DatetimeIndex(merged['Week Ending Date']).month
 merged['month_name'] = merged['month'].apply(lambda x: calendar.month_abbr[x])
 merged['date'] = pd.DatetimeIndex(merged['Week Ending Date']).date
@@ -35,8 +53,11 @@ merged['Population'] = merged['Population'].str.replace(',','').astype(float)
 merged['capita_allcause'] = (merged['All Cause']/merged['Population']) * 1000
 merged['capita_covid'] = (merged['COVID-19 (U071, Multiple Cause of Death)']/merged['Population']) * 1000
 
+
 #United States dataframe 
 us_df = df_filter[df_filter['Jurisdiction of Occurrence']=='United States']
+us_df_2019 = df_2019[df_2019['Jurisdiction of Occurrence']=='United States']
+us_df = pd.concat([us_df_2019,us_df],ignore_index=True)
 us_df['Population'] = 328239523
 us_df['Capita'] = (us_df['All Cause']/us_df['Population']) * 1000
 us_df['Capita_COVID'] = (us_df['COVID-19 (U071, Multiple Cause of Death)']/us_df['Population']) * 1000
@@ -48,6 +69,8 @@ us_df['month'] = pd.DatetimeIndex(us_df['Week Ending Date']).month
 us_df['month_name'] = us_df['month'].apply(lambda x: calendar.month_abbr[x])
 us_df_rem = us_df.tail(6)
 us_df.drop(us_df.tail(5).index,inplace=True)
+
+
 
 
 #Graphs for entire United States
@@ -126,7 +149,7 @@ state_df.drop(state_df.tail(5).index,inplace=True)
 merged_rem = merged[merged['Jurisdiction of Occurrence']==state].tail(6)
 
 
-#All cause death graph
+#All cause death graph for each U.S. State
 st.header(f"All Cause Deaths for {state}")
 all_cause1 =  alt.Chart(state_df,width=1000,height=400).transform_fold(['MMWR Year']).mark_line().encode( 
     x=alt.X('MMWR Week', axis = alt.Axis(title='Week Number')),
@@ -193,7 +216,6 @@ st.altair_chart(covid1 + covid2 + covid3 + covid4)
 st.markdown(" :warning: Note the dashes in the graph represent that the number of deaths reported in this graph may be incomplete due to lag in time (approx. 6 - 8 weeks) between the time the death occured and when the death certificate is completed.")
 st.header('Cumulative Count of COVID-19 and All Cause Deaths')
 options = st.multiselect('Select Multiple States',merged['Jurisdiction of Occurrence'].unique())
-#st.write(merged[merged['Jurisdiction of Occurrence'].isin(options)])
 if options:
     bar = alt.Chart(merged[merged['Jurisdiction of Occurrence'].isin(options)]).mark_bar().encode(
         y="sum(COVID-19 (U071, Multiple Cause of Death))",
